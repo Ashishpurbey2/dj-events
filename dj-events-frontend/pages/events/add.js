@@ -7,8 +7,9 @@ import Link from 'next/link'
 import Layout from '@/components/Layout'
 import { API_URL } from '@/config/index'
 import styles from '@/styles/Form.module.css'
+import { parseCookies } from '@/helpers/index'
 
-export default function AddEventPage() {
+export default function AddEventPage({ token }) {
   const [values, setValues] = useState({
     name: '',
     performers: '',
@@ -23,23 +24,30 @@ export default function AddEventPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    //validation
-    const hasEmptyFields = Object.values(values).some((element)=>element=== '') //return true or false
 
-    if(hasEmptyFields){
-      toast.error('please fill in all fields');
+    //validation
+    const hasEmptyFields = Object.values(values).some(
+      (element) => element === ''
+    ) //return true or false
+
+    if (hasEmptyFields) {
+      toast.error('please fill in all fields')
     }
-    const res = await fetch(`${API_URL}/events`,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json'
+    const res = await fetch(`${API_URL}/events`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
       },
-      body:JSON.stringify(values)
+      body: JSON.stringify(values),
     })
-    if(!res.ok){
+    if (!res.ok) {
+      if (res.status === 403 || res.status === 401) {
+        toast.error('No token included')
+        return
+      }
       toast.error('Something Went Wrong')
-    }else{
+    } else {
       const evt = await res.json()
       router.push(`/events/${evt.slug}`)
     }
@@ -136,12 +144,12 @@ export default function AddEventPage() {
   )
 }
 
-// export async function getServerSideProps({ req }) {
-//   const { token } = parseCookies(req)
+export async function getServerSideProps({ req }) {
+  const { token } = parseCookies(req)
 
-//   return {
-//     props: {
-//       token,
-//     },
-//   }
-// }
+  return {
+    props: {
+      token,
+    },
+  }
+}
