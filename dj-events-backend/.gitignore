@@ -16,7 +16,9 @@ Icon
 ############################
 
 *~
-
+.vscode
+yarn.lock
+package-lock.json
 
 ############################
 # Windows
